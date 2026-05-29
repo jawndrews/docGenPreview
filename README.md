@@ -30,7 +30,7 @@ Built for **Revenue Cloud / OmniStudio** orgs using **OmniDataTransform (DataRap
 ## Installation
 
 ```bash
-git clone https://github.com/your-username/docGenPreview.git
+git clone https://github.com/jawndrews/docGenPreview.git
 cd docGenPreview
 sf org login web --instance-url https://test.salesforce.com --alias myOrg
 sf project deploy start --source-dir force-app --target-org myOrg --test-level NoTestRun
