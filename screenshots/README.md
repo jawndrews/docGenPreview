@@ -1,15 +1,10 @@
 # Screenshots
 
-Add screenshots here to illustrate the flow setup and component behaviour.
+Add these four screenshots to this folder:
 
-Suggested screenshots:
-1. `flow-canvas.png` — Full flow canvas showing all elements
-2. `get-document-template.png` — Get Records element for DocumentTemplate
-3. `get-content-document.png` — Get Records element for ContentDocument
-4. `assignment.png` — Assignment element with all DGP field values
-5. `create-dgp.png` — Create Records element
-6. `screen-component.png` — Screen element with docGenPreview component wired up
-7. `component-properties.png` — Component properties panel in Flow Builder
-8. `loading-state.png` — Component spinner in action
-9. `success-state.png` — Component success state with buttons
-10. `file-preview.png` — Native Salesforce file preview modal
+| Filename | What to capture |
+|---|---|
+| `loading-state.png` | The flow screen showing the spinner while the document generates |
+| `success-state.png` | The flow screen showing the success banner + buttons |
+| `flow-overview.png` | The full flow canvas showing all elements top to bottom |
+| `component-properties.png` | The Screen element with the docGenPreview component open, showing the input properties panel |
