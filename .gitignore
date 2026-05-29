@@ -1,0 +1,19 @@
+# SFDX
+.sfdx/
+.sf/
+
+# Node
+node_modules/
+npm-debug.log
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deploy artifacts
+*.zip
