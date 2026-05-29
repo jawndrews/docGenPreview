@@ -1,6 +1,6 @@
 # docGenPreview
 
-> LWC Screen Flow component for OmniStudio server-side document generation. Polls a `DocumentGenerationProcess` record, shows a spinner while waiting, then opens the native Salesforce file preview on completion.
+> LWC Screen Flow component for OmniStudio server-side document generation. Polls a `DocumentGenerationProcess` record, shows a spinner while waiting, then reactively triggers the native Salesforce File Preview component on the same screen.
 
 Built for **Revenue Cloud / OmniStudio** orgs using **OmniDataTransform (DataRaptor)** document templates.
 
@@ -15,6 +15,12 @@ Built for **Revenue Cloud / OmniStudio** orgs using **OmniDataTransform (DataRap
 | Flow Overview | Component Properties |
 |---|---|
 | ![Flow](screenshots/flow-overview.png) | ![Properties](screenshots/component-properties.png) |
+
+---
+
+## How It Works
+
+The component fires `FlowAttributeChangeEvent` when generation completes, outputting the `ContentDocumentId`. The native **File Preview** screen component — placed on the same screen — is bound to that variable and reactively renders the PDF when it receives the Id. No second screen, no iframe, no CSP config needed.
 
 ---
 
@@ -66,13 +72,15 @@ Store the output in a variable so the Id is available for the screen.
 | `Status` | Text | `InProgress` |
 | `Type` | Text | `GenerateAndConvert` |
 
-Formula fields require a **Formula resource** (New Resource → Formula → Text) — create these first, then reference them in the field value.
+Formula fields (`DataRaptorInput`, `RequestText`) require a **Formula resource** (New Resource → Formula → Text) — create these first, then reference in the field value.
 
-> Use **single quotes** for string literals in Flow formulas. The `RequestText` format — including spaces after colons and `"keepIntermediate": false` — is enforced by Salesforce and will throw `INVALID_INPUT` if wrong.
+> Use **single quotes** for string literals in Flow formulas. The `RequestText` format — including spaces after colons and `"keepIntermediate": false` — is enforced by Salesforce.
 
 ### Screen Component
 
-Drop `docGenPreview` onto a Screen element and set:
+Add a **Screen** element with **two components**:
+
+**1. `docGenPreview`**
 
 | Input | Value |
 |---|---|
@@ -82,6 +90,20 @@ Drop `docGenPreview` onto a Screen element and set:
 | Hide Download PDF Button | Boolean |
 | Show Download Word Button | Boolean |
 
+Create a Text flow variable (e.g. `varContentDocumentId`) and bind the output:
+
+| Output | Variable |
+|---|---|
+| PDF Content Document ID | `{!varContentDocumentId}` |
+
+**2. Native File Preview component** (from the Flow screen component library)
+
+| Input | Value |
+|---|---|
+| Content Document ID | `{!varContentDocumentId}` |
+
+When `docGenPreview` finishes polling and fires `FlowAttributeChangeEvent` with the `ContentDocumentId`, the File Preview component reactively loads the PDF inline — no screen navigation required.
+
 ---
 
 ## Component Properties
@@ -90,10 +112,11 @@ Drop `docGenPreview` onto a Screen element and set:
 |---|---|---|---|
 | `dgpId` | String | — | **Required.** DGP record Id |
 | `cardTitle` | String | `Generated Document` | Card header |
-| `autoPreview` | Boolean | `false` | Auto-opens file preview on completion |
+| `autoPreview` | Boolean | `false` | Also auto-opens native file preview modal on completion |
 | `hidePdfDownload` | Boolean | `false` | Hides Download PDF button |
 | `showDocxDownload` | Boolean | `false` | Shows Download Word button |
 | `contentVersionId` *(output)* | String | — | ContentVersionId of the generated PDF |
+| `contentDocumentId` *(output)* | String | — | ContentDocumentId — bind to the File Preview component for reactive inline preview |
 
 ---
 

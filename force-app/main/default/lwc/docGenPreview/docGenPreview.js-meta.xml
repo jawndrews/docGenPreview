@@ -52,12 +52,19 @@
                 default="false"
             />
 
-            <!-- OUTPUT -->
+            <!-- OUTPUTS -->
             <property
                 name="contentVersionId"
                 type="String"
                 label="PDF Content Version ID"
                 description="ContentVersionId of the generated PDF. Available after generation completes."
+                role="outputOnly"
+            />
+            <property
+                name="contentDocumentId"
+                type="String"
+                label="PDF Content Document ID"
+                description="ContentDocumentId (069) of the generated PDF. Bind this to the native File Preview component on the same screen for reactive inline preview."
                 role="outputOnly"
             />
 

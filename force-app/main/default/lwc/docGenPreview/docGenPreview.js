@@ -17,6 +17,7 @@ export default class DocGenPreview extends NavigationMixin(LightningElement) {
 
     // ─── Flow Outputs ────────────────────────────────────────────────────────
     @api contentVersionId;
+    @api contentDocumentId;
 
     // ─── Internal State ─────────────────────────────────────────────────────
     @track isLoading  = true;
@@ -89,6 +90,9 @@ export default class DocGenPreview extends NavigationMixin(LightningElement) {
                 const outputId = result.pdfContentVersionId || result.docContentVersionId;
                 if (outputId) {
                     this.dispatchEvent(new FlowAttributeChangeEvent('contentVersionId', outputId));
+                }
+                if (this.pdfContentDocumentId) {
+                    this.dispatchEvent(new FlowAttributeChangeEvent('contentDocumentId', this.pdfContentDocumentId));
                 }
 
                 this.isLoading  = false;
