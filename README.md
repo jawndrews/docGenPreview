@@ -8,19 +8,17 @@ Works with any flow that creates a `DocumentGenerationProcess` record — the co
 
 ## Screenshots
 
-| Loading | Success (inline preview) |
-| --- | --- |
+| Loading                                   | Success (inline preview)                  |
+| ----------------------------------------- | ----------------------------------------- |
 | ![Loading](screenshots/loading-state.png) | ![Success](screenshots/success-state.png) |
 
-| Flow Overview | Component Properties |
-| --- | --- |
-| ![Flow](screenshots/flow-overview.png) | ![Properties](screenshots/component-properties.png) |
+| Flow Overview                          |
+| -------------------------------------- |
+| ![Flow](screenshots/flow-overview.png) |
 
-> **Retake these for the new version** (overwrite the PNGs in `/screenshots`):
-> - **success-state.png** — the most important one. Capture the screen *after* generation finishes: the slim green "Document generated successfully" banner with the **native File Preview rendering the PDF inline below it**. (The old shot showed buttons/thumbnail that no longer exist.)
-> - **component-properties.png** — the `docGenPreview` config panel now shows only **Document Generation Process ID** and **Card Title**. Retake so it matches.
-> - **loading-state.png** — basically unchanged (spinner + "Generating Your Document" + elapsed seconds). Retake only if you want it fresh.
-> - **flow-overview.png** — the flow canvas (Start → Get Template → Get Content Document → Create DGP → Screen → End). Retake if your layout changed.
+| docGenPreview Properties                               | File Preview Properties                                 |
+| ------------------------------------------------------ | ------------------------------------------------------- |
+| ![docGenPreview](screenshots/component-properties.png) | ![File Preview](screenshots/filepreview-properties.png) |
 
 ---
 
@@ -63,25 +61,27 @@ Get Document Template  →  Get Content Document  →  Create DGP  →  Screen
 ```
 
 ### Get Document Template
+
 - Object: `DocumentTemplate` / Filter: `Name` = your template name / First record only
 
 ### Get Content Document
+
 - Object: `ContentDocument` / Filter: `Title` = your Word filename (no `.docx`) / Sort: `LastModifiedDate` DESC / First record only
 
 ### Create Records — `DocumentGenerationProcess`
 
 Store the output in a variable so the Id is available for the screen.
 
-| Field | Type | Value |
-| --- | --- | --- |
-| `DataRaptorInput` | Formula | `'{"Id":"' & {!recordId.Id} & '"}'` |
-| `DocGenApiVersionType` | Text | `Advanced` |
-| `DocumentInputType` | Text | `DocumentTemplate` |
-| `DocumentTemplateId` | Reference | `{!Get_Document_Template.Id}` |
-| `ReferenceObject` | Reference | `{!recordId.Id}` |
-| `RequestText` | Formula | `'{"templateContentVersionId": "' & {!Get_Content_Document.LatestPublishedVersionId} & '", "title":"' & {!recordId.Name} & '", "keepIntermediate": false}'` |
-| `Status` | Text | `InProgress` |
-| `Type` | Text | `GenerateAndConvert` |
+| Field                  | Type      | Value                                                                                                                                                       |
+| ---------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DataRaptorInput`      | Formula   | `'{"Id":"' & {!recordId.Id} & '"}'`                                                                                                                         |
+| `DocGenApiVersionType` | Text      | `Advanced`                                                                                                                                                  |
+| `DocumentInputType`    | Text      | `DocumentTemplate`                                                                                                                                          |
+| `DocumentTemplateId`   | Reference | `{!Get_Document_Template.Id}`                                                                                                                               |
+| `ReferenceObject`      | Reference | `{!recordId.Id}`                                                                                                                                            |
+| `RequestText`          | Formula   | `'{"templateContentVersionId": "' & {!Get_Content_Document.LatestPublishedVersionId} & '", "title":"' & {!recordId.Name} & '", "keepIntermediate": false}'` |
+| `Status`               | Text      | `InProgress`                                                                                                                                                |
+| `Type`                 | Text      | `GenerateAndConvert`                                                                                                                                        |
 
 Formula fields (`DataRaptorInput`, `RequestText`) require a **Formula resource** (New Resource → Formula → Text) — create these first, then reference in the field value.
 
@@ -93,22 +93,22 @@ Add a **Screen** element with **two components**.
 
 **1. `docGenPreview`**
 
-| Input | Value |
-| --- | --- |
+| Input                          | Value                   |
+| ------------------------------ | ----------------------- |
 | Document Generation Process ID | `{!YourDGPVariable.Id}` |
-| Card Title | e.g. `Quote Document` |
+| Card Title                     | e.g. `Quote Document`   |
 
 Bind the output to a Text flow variable (e.g. `varContentDocumentId`):
 
-| Output | Variable |
-| --- | --- |
+| Output                  | Variable                  |
+| ----------------------- | ------------------------- |
 | PDF Content Document ID | `{!varContentDocumentId}` |
 
 **2. Native File Preview component** (from the Flow screen component library)
 
-| Setting | Value |
-| --- | --- |
-| Content Document ID | `{!varContentDocumentId}` |
+| Setting              | Value                                                   |
+| -------------------- | ------------------------------------------------------- |
+| Content Document ID  | `{!varContentDocumentId}`                               |
 | Component Visibility | Show when `{!varContentDocumentId}` **Is Null = False** |
 
 When `docGenPreview` finishes polling and fires `FlowAttributeChangeEvent` with the `ContentDocumentId`, File Preview reactively loads the PDF inline. Keep both components on the **same** screen — reactivity is screen-scoped.
@@ -117,12 +117,12 @@ When `docGenPreview` finishes polling and fires `FlowAttributeChangeEvent` with 
 
 ## Component Properties
 
-| Property | Type | Default | Description |
-| --- | --- | --- | --- |
-| `dgpId` | String | — | **Required.** DGP record Id |
-| `cardTitle` | String | `Generated Document` | Card header |
-| `contentDocumentId` *(output)* | String | — | ContentDocumentId (069) — bind to the File Preview component for reactive inline preview |
-| `contentVersionId` *(output)* | String | — | ContentVersionId (068) of the generated PDF — handy for a Download action elsewhere |
+| Property                       | Type   | Default              | Description                                                                              |
+| ------------------------------ | ------ | -------------------- | ---------------------------------------------------------------------------------------- |
+| `dgpId`                        | String | —                    | **Required.** DGP record Id                                                              |
+| `cardTitle`                    | String | `Generated Document` | Card header                                                                              |
+| `contentDocumentId` _(output)_ | String | —                    | ContentDocumentId (069) — bind to the File Preview component for reactive inline preview |
+| `contentVersionId` _(output)_  | String | —                    | ContentVersionId (068) of the generated PDF — handy for a Download action elsewhere      |
 
 ---
 
