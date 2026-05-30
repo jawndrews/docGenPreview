@@ -26,8 +26,6 @@ Works with any flow that creates a `DocumentGenerationProcess` record — the co
 
 When polling detects `Status = Success`, the component fires `FlowAttributeChangeEvent` and outputs the `ContentDocumentId`. The native **File Preview** screen component — placed on the **same** screen and bound to that output — reactively renders the PDF when it receives the Id. No second screen, no iframe, no CSP config, no full-page navigation.
 
-The wait happens client-side (timed polling), so there's no flow loop and no DML-in-a-loop.
-
 ---
 
 ## Prerequisites
