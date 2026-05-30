@@ -8,16 +8,14 @@
     <targetConfigs>
         <targetConfig targets="lightning__FlowScreen">
 
-            <!-- REQUIRED -->
+            <!-- INPUTS -->
             <property
                 name="dgpId"
                 type="String"
                 label="Document Generation Process ID"
-                description="The Id of the DocumentGenerationProcess record created in the flow."
+                description="The Id of the DocumentGenerationProcess record created earlier in the flow."
                 role="inputOnly"
             />
-
-            <!-- DISPLAY -->
             <property
                 name="cardTitle"
                 type="String"
@@ -26,45 +24,19 @@
                 role="inputOnly"
             />
 
-            <!-- BEHAVIOUR -->
-            <property
-                name="autoPreview"
-                type="Boolean"
-                label="Auto-open Preview on Completion"
-                description="When enabled, automatically opens the native Salesforce file preview when generation completes."
-                role="inputOnly"
-                default="false"
-            />
-            <property
-                name="hidePdfDownload"
-                type="Boolean"
-                label="Hide Download PDF Button"
-                description="When checked, hides the Download PDF button on the success screen."
-                role="inputOnly"
-                default="false"
-            />
-            <property
-                name="showDocxDownload"
-                type="Boolean"
-                label="Show Download Word Button"
-                description="Shows a Download Word (.docx) button on the success screen."
-                role="inputOnly"
-                default="false"
-            />
-
             <!-- OUTPUTS -->
-            <property
-                name="contentVersionId"
-                type="String"
-                label="PDF Content Version ID"
-                description="ContentVersionId of the generated PDF. Available after generation completes."
-                role="outputOnly"
-            />
             <property
                 name="contentDocumentId"
                 type="String"
                 label="PDF Content Document ID"
-                description="ContentDocumentId (069) of the generated PDF. Bind this to the native File Preview component on the same screen for reactive inline preview."
+                description="ContentDocumentId (069) of the generated PDF. Bind this to the native File Preview component on the SAME screen for reactive inline preview."
+                role="outputOnly"
+            />
+            <property
+                name="contentVersionId"
+                type="String"
+                label="PDF Content Version ID"
+                description="ContentVersionId (068) of the generated PDF. Useful for a Download action elsewhere in the flow."
                 role="outputOnly"
             />
 

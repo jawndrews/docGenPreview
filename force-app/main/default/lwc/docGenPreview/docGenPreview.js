@@ -1,41 +1,41 @@
 import { LightningElement, api, track } from 'lwc';
 import { FlowAttributeChangeEvent } from 'lightning/flowSupport';
-import { NavigationMixin } from 'lightning/navigation';
 import getDGPStatus from '@salesforce/apex/DocGenPreviewController.getDGPStatus';
 
 const POLL_INTERVAL_MS = 3000;
-const MAX_ATTEMPTS     = 60;
+const MAX_ATTEMPTS     = 60;   // 60 × 3s = ~3 minutes before timing out
 
-export default class DocGenPreview extends NavigationMixin(LightningElement) {
+/**
+ * docGenPreview — status poller for a DocumentGenerationProcess.
+ *
+ * Waits (client-side, no flow loop / no DML) for an async document
+ * generation to finish, then publishes the generated file IDs back to the
+ * flow. Pair it on the SAME flow screen with the native File Preview
+ * component, bound reactively to the `contentDocumentId` output.
+ */
+export default class DocGenPreview extends LightningElement {
 
-    // ─── Flow Inputs ────────────────────────────────────────────────────────
+    // ─── Flow Inputs ──────────────────────────────────────────────────────
     @api dgpId;
-    @api cardTitle        = 'Generated Document';
-    @api autoPreview      = false;
-    @api hidePdfDownload  = false;
-    @api showDocxDownload = false;
+    @api cardTitle = 'Generated Document';
 
-    // ─── Flow Outputs ────────────────────────────────────────────────────────
-    @api contentVersionId;
-    @api contentDocumentId;
+    // ─── Flow Outputs ─────────────────────────────────────────────────────
+    @api contentDocumentId;   // 069 — wire this to the File Preview component
+    @api contentVersionId;    // 068 — handy for a Download action elsewhere
 
-    // ─── Internal State ─────────────────────────────────────────────────────
-    @track isLoading  = true;
-    @track isComplete = false;
-    @track isError    = false;
-    @track isTimedOut = false;
+    // ─── Internal State ───────────────────────────────────────────────────
+    @track isLoading      = true;
+    @track isComplete     = false;
+    @track isError        = false;
+    @track isTimedOut     = false;
     @track errorMessage   = '';
     @track elapsedSeconds = 0;
-
-    pdfContentVersionId  = null;
-    docContentVersionId  = null;
-    pdfContentDocumentId = null;
 
     _pollInterval  = null;
     _elapsedTicker = null;
     _attemptCount  = 0;
 
-    // ─── Lifecycle ──────────────────────────────────────────────────────────
+    // ─── Lifecycle ────────────────────────────────────────────────────────
 
     connectedCallback() {
         if (!this.dgpId) {
@@ -51,7 +51,7 @@ export default class DocGenPreview extends NavigationMixin(LightningElement) {
         this.stopElapsedTicker();
     }
 
-    // ─── Polling ────────────────────────────────────────────────────────────
+    // ─── Polling ──────────────────────────────────────────────────────────
 
     startPolling() {
         this.pollStatus();
@@ -82,38 +82,45 @@ export default class DocGenPreview extends NavigationMixin(LightningElement) {
             if (result.status === 'Success') {
                 this.stopPolling();
                 this.stopElapsedTicker();
-
-                this.pdfContentVersionId  = result.pdfContentVersionId;
-                this.docContentVersionId  = result.docContentVersionId;
-                this.pdfContentDocumentId = result.pdfContentDocumentId;
-
-                const outputId = result.pdfContentVersionId || result.docContentVersionId;
-                if (outputId) {
-                    this.dispatchEvent(new FlowAttributeChangeEvent('contentVersionId', outputId));
-                }
-                if (this.pdfContentDocumentId) {
-                    this.dispatchEvent(new FlowAttributeChangeEvent('contentDocumentId', this.pdfContentDocumentId));
-                }
-
-                this.isLoading  = false;
-                this.isComplete = true;
-
-                if (this.autoPreview) {
-                    this.handlePreview();
-                }
+                this.publishResult(result);
 
             } else if (result.status === 'Failure') {
                 this.stopPolling();
                 this.stopElapsedTicker();
                 this.showError(result.errorMessage);
             }
+            // any other status → keep polling
 
         } catch (error) {
+            // Transient errors are swallowed so a single failed poll doesn't
+            // kill the loop; MAX_ATTEMPTS still bounds the wait.
+            // eslint-disable-next-line no-console
             console.error('DocGenPreview poll error:', error);
         }
     }
 
-    // ─── Elapsed Timer ──────────────────────────────────────────────────────
+    publishResult(result) {
+        this.contentDocumentId = result.pdfContentDocumentId || null;
+        this.contentVersionId  =
+            result.pdfContentVersionId || result.docContentVersionId || null;
+
+        // Push outputs to the flow so reactive components (File Preview) update.
+        if (this.contentDocumentId) {
+            this.dispatchEvent(
+                new FlowAttributeChangeEvent('contentDocumentId', this.contentDocumentId)
+            );
+        }
+        if (this.contentVersionId) {
+            this.dispatchEvent(
+                new FlowAttributeChangeEvent('contentVersionId', this.contentVersionId)
+            );
+        }
+
+        this.isLoading  = false;
+        this.isComplete = true;
+    }
+
+    // ─── Elapsed Timer ────────────────────────────────────────────────────
 
     startElapsedTicker() {
         this._elapsedTicker = setInterval(() => this.elapsedSeconds++, 1000);
@@ -126,24 +133,7 @@ export default class DocGenPreview extends NavigationMixin(LightningElement) {
         }
     }
 
-    // ─── Handlers ───────────────────────────────────────────────────────────
-
-    handlePreview() {
-        const previewId = this.pdfContentDocumentId || this.pdfContentVersionId;
-        this[NavigationMixin.Navigate]({
-            type: 'standard__namedPage',
-            attributes: { pageName: 'filePreview' },
-            state: { selectedRecordId: previewId }
-        });
-    }
-
-    handlePdfDownload() {
-        window.open(this.pdfDownloadUrl, '_blank');
-    }
-
-    handleDocxDownload() {
-        window.open(this.docxDownloadUrl, '_blank');
-    }
+    // ─── Handlers ─────────────────────────────────────────────────────────
 
     handleRetry() {
         this.isError        = false;
@@ -163,7 +153,7 @@ export default class DocGenPreview extends NavigationMixin(LightningElement) {
         this.startElapsedTicker();
     }
 
-    // ─── Helpers ────────────────────────────────────────────────────────────
+    // ─── Helpers ──────────────────────────────────────────────────────────
 
     showError(message) {
         this.stopPolling();
@@ -171,29 +161,5 @@ export default class DocGenPreview extends NavigationMixin(LightningElement) {
         this.isLoading    = false;
         this.isError      = true;
         this.errorMessage = message || 'An unexpected error occurred.';
-    }
-
-    // ─── Computed Properties ────────────────────────────────────────────────
-
-    get showPreviewButton() {
-        return this.isComplete && this.pdfContentDocumentId;
-    }
-
-    get showPdfDownload() {
-        return this.isComplete && !this.hidePdfDownload && this.pdfContentVersionId;
-    }
-
-    get showDocxDownloadBtn() {
-        return this.isComplete && this.showDocxDownload && this.docContentVersionId;
-    }
-
-    get pdfDownloadUrl() {
-        if (!this.pdfContentVersionId) return null;
-        return `/sfc/servlet.shepherd/version/download/${this.pdfContentVersionId}?operationContext=S1`;
-    }
-
-    get docxDownloadUrl() {
-        if (!this.docContentVersionId) return null;
-        return `/sfc/servlet.shepherd/version/download/${this.docContentVersionId}?operationContext=S1`;
     }
 }

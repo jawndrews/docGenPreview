@@ -3,7 +3,7 @@
 
         <!-- LOADING STATE -->
         <template if:true={isLoading}>
-            <div class="slds-align_absolute-center slds-p-around_large">
+            <div class="slds-align_absolute-center slds-p-top_large">
                 <div class="slds-is-relative" style="height:80px;">
                     <lightning-spinner
                         alternative-text="Generating document"
@@ -36,7 +36,7 @@
                 <p class="slds-text-heading_small slds-m-top_medium">Still Processing</p>
                 <p class="slds-text-body_regular slds-text-color_weak slds-m-top_x-small">
                     The document is taking longer than expected.
-                    Check the Files tab on this record shortly.
+                    Check the Files related list on this record shortly.
                 </p>
                 <div class="slds-m-top_medium">
                     <lightning-button
@@ -70,10 +70,10 @@
             </div>
         </template>
 
-        <!-- SUCCESS STATE -->
+        <!-- SUCCESS STATE (slim confirmation — File Preview renders below) -->
         <template if:true={isComplete}>
             <div class="slds-p-around_medium">
-                <div class="slds-notify slds-notify_alert slds-theme_success slds-m-bottom_medium" role="status">
+                <div class="slds-notify slds-notify_alert slds-theme_success" role="status">
                     <lightning-icon
                         icon-name="utility:success"
                         variant="inverse"
@@ -81,35 +81,6 @@
                         class="slds-m-right_x-small">
                     </lightning-icon>
                     <h2>Document generated successfully.</h2>
-                </div>
-
-                <div class="slds-button-group slds-m-top_x-small">
-                    <template if:true={showPreviewButton}>
-                        <lightning-button
-                            label="Preview Document"
-                            variant="brand"
-                            icon-name="utility:preview"
-                            class="slds-m-right_small"
-                            onclick={handlePreview}>
-                        </lightning-button>
-                    </template>
-                    <template if:true={showPdfDownload}>
-                        <lightning-button
-                            label="Download PDF"
-                            variant="neutral"
-                            icon-name="utility:download"
-                            class="slds-m-right_small"
-                            onclick={handlePdfDownload}>
-                        </lightning-button>
-                    </template>
-                    <template if:true={showDocxDownloadBtn}>
-                        <lightning-button
-                            label="Download Word"
-                            variant="neutral"
-                            icon-name="utility:download"
-                            onclick={handleDocxDownload}>
-                        </lightning-button>
-                    </template>
                 </div>
             </div>
         </template>
